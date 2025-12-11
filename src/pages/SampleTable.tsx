@@ -105,6 +105,24 @@ export default function SampleTable() {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  // --- TAMBAHAN STATE LOADING ---
+  const [isLoading, setIsLoading] = React.useState(true); // Default true (sedang memuat)
+  const [tableData, setTableData] = React.useState<UserData[]>([]); // Data tabel dari state
+
+  // Simulasi Fetch Data dari API
+  React.useEffect(() => {
+    // Set loading true
+    setIsLoading(true);
+
+    // Ceritanya nunggu 2 detik (Simulasi delay server)
+    const timer = setTimeout(() => {
+      setTableData(data); // Masukkan data dummy ke state
+      setIsLoading(false); // Loading selesai
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // State Modals
   const [isAddOpen, setIsAddOpen] = React.useState(false);
 
@@ -284,7 +302,7 @@ export default function SampleTable() {
   ];
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -476,7 +494,20 @@ export default function SampleTable() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {/* --- LOGIC LOADING --- */}
+            {isLoading ? (
+              // Tampilkan 5 baris Skeleton Loading
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  {columns.map((_, colIndex) => (
+                    <TableCell key={colIndex} className="py-3">
+                      <div className="h-6 w-full rounded bg-slate-100 animate-pulse dark:bg-slate-800" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
+              // Tampilkan Data Asli jika sudah selesai loading
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -494,6 +525,7 @@ export default function SampleTable() {
                 </TableRow>
               ))
             ) : (
+              // Tampilkan Pesan Kosong jika data 0
               <TableRow>
                 <TableCell
                   colSpan={columns.length}

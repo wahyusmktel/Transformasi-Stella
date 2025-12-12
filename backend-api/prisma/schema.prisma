@@ -1,0 +1,537 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model cache {
+  key        String @id @db.VarChar(255)
+  value      String @db.MediumText
+  expiration Int
+}
+
+model cache_locks {
+  key        String @id @db.VarChar(255)
+  owner      String @db.VarChar(255)
+  expiration Int
+}
+
+model dispensasi_siswa {
+  id              BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  dispensasi_id   BigInt       @db.UnsignedBigInt
+  master_siswa_id BigInt       @db.UnsignedBigInt
+  created_at      DateTime?    @db.Timestamp(0)
+  updated_at      DateTime?    @db.Timestamp(0)
+  dispensasis     dispensasis  @relation(fields: [dispensasi_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "dispensasi_siswa_dispensasi_id_foreign")
+  master_siswa    master_siswa @relation(fields: [master_siswa_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "dispensasi_siswa_master_siswa_id_foreign")
+
+  @@index([dispensasi_id], map: "dispensasi_siswa_dispensasi_id_foreign")
+  @@index([master_siswa_id], map: "dispensasi_siswa_master_siswa_id_foreign")
+}
+
+model dispensasis {
+  id                                         BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  nama_kegiatan                              String             @db.VarChar(255)
+  keterangan                                 String             @db.Text
+  waktu_mulai                                DateTime?          @db.Timestamp(0)
+  waktu_selesai                              DateTime?          @db.Timestamp(0)
+  status                                     dispensasis_status @default(diajukan)
+  diajukan_oleh_id                           BigInt             @db.UnsignedBigInt
+  disetujui_oleh_id                          BigInt?            @db.UnsignedBigInt
+  alasan_penolakan                           String?            @db.Text
+  created_at                                 DateTime?          @db.Timestamp(0)
+  updated_at                                 DateTime?          @db.Timestamp(0)
+  dispensasi_siswa                           dispensasi_siswa[]
+  users_dispensasis_diajukan_oleh_idTousers  users              @relation("dispensasis_diajukan_oleh_idTousers", fields: [diajukan_oleh_id], references: [id], onUpdate: Restrict, map: "dispensasis_diajukan_oleh_id_foreign")
+  users_dispensasis_disetujui_oleh_idTousers users?             @relation("dispensasis_disetujui_oleh_idTousers", fields: [disetujui_oleh_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "dispensasis_disetujui_oleh_id_foreign")
+
+  @@index([diajukan_oleh_id], map: "dispensasis_diajukan_oleh_id_foreign")
+  @@index([disetujui_oleh_id], map: "dispensasis_disetujui_oleh_id_foreign")
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model izin_meninggalkan_kelas {
+  id                                                            BigInt                         @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid                                                          String                         @unique(map: "izin_meninggalkan_kelas_uuid_unique") @db.Char(36)
+  user_id                                                       BigInt                         @db.UnsignedBigInt
+  rombel_id                                                     BigInt                         @db.UnsignedBigInt
+  jadwal_pelajaran_id                                           BigInt?                        @db.UnsignedBigInt
+  tujuan                                                        String                         @db.VarChar(255)
+  keterangan                                                    String?                        @db.Text
+  estimasi_kembali                                              DateTime?                      @db.Timestamp(0)
+  waktu_keluar_sebenarnya                                       DateTime?                      @db.Timestamp(0)
+  waktu_kembali_sebenarnya                                      DateTime?                      @db.Timestamp(0)
+  status                                                        izin_meninggalkan_kelas_status @default(diajukan)
+  guru_kelas_approval_id                                        BigInt?                        @db.UnsignedBigInt
+  guru_kelas_approved_at                                        DateTime?                      @db.Timestamp(0)
+  guru_piket_approval_id                                        BigInt?                        @db.UnsignedBigInt
+  guru_piket_approved_at                                        DateTime?                      @db.Timestamp(0)
+  security_verification_id                                      BigInt?                        @db.UnsignedBigInt
+  security_verified_at                                          DateTime?                      @db.Timestamp(0)
+  alasan_penolakan                                              String?                        @db.Text
+  ditolak_oleh                                                  BigInt?                        @db.UnsignedBigInt
+  created_at                                                    DateTime?                      @db.Timestamp(0)
+  updated_at                                                    DateTime?                      @db.Timestamp(0)
+  users_izin_meninggalkan_kelas_ditolak_olehTousers             users?                         @relation("izin_meninggalkan_kelas_ditolak_olehTousers", fields: [ditolak_oleh], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "izin_meninggalkan_kelas_ditolak_oleh_foreign")
+  users_izin_meninggalkan_kelas_guru_kelas_approval_idTousers   users?                         @relation("izin_meninggalkan_kelas_guru_kelas_approval_idTousers", fields: [guru_kelas_approval_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "izin_meninggalkan_kelas_guru_kelas_approval_id_foreign")
+  users_izin_meninggalkan_kelas_guru_piket_approval_idTousers   users?                         @relation("izin_meninggalkan_kelas_guru_piket_approval_idTousers", fields: [guru_piket_approval_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "izin_meninggalkan_kelas_guru_piket_approval_id_foreign")
+  jadwal_pelajarans                                             jadwal_pelajarans?             @relation(fields: [jadwal_pelajaran_id], references: [id], onUpdate: Restrict, map: "izin_meninggalkan_kelas_jadwal_pelajaran_id_foreign")
+  rombels                                                       rombels                        @relation(fields: [rombel_id], references: [id], onUpdate: Restrict, map: "izin_meninggalkan_kelas_rombel_id_foreign")
+  users_izin_meninggalkan_kelas_security_verification_idTousers users?                         @relation("izin_meninggalkan_kelas_security_verification_idTousers", fields: [security_verification_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "izin_meninggalkan_kelas_security_verification_id_foreign")
+  users_izin_meninggalkan_kelas_user_idTousers                  users                          @relation("izin_meninggalkan_kelas_user_idTousers", fields: [user_id], references: [id], onUpdate: Restrict, map: "izin_meninggalkan_kelas_user_id_foreign")
+
+  @@index([ditolak_oleh], map: "izin_meninggalkan_kelas_ditolak_oleh_foreign")
+  @@index([guru_kelas_approval_id], map: "izin_meninggalkan_kelas_guru_kelas_approval_id_foreign")
+  @@index([guru_piket_approval_id], map: "izin_meninggalkan_kelas_guru_piket_approval_id_foreign")
+  @@index([jadwal_pelajaran_id], map: "izin_meninggalkan_kelas_jadwal_pelajaran_id_foreign")
+  @@index([rombel_id], map: "izin_meninggalkan_kelas_rombel_id_foreign")
+  @@index([security_verification_id], map: "izin_meninggalkan_kelas_security_verification_id_foreign")
+  @@index([user_id], map: "izin_meninggalkan_kelas_user_id_foreign")
+}
+
+model jadwal_pelajarans {
+  id                      BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  rombel_id               BigInt                    @db.UnsignedBigInt
+  mata_pelajaran_id       BigInt                    @db.UnsignedBigInt
+  master_guru_id          BigInt                    @db.UnsignedBigInt
+  hari                    jadwal_pelajarans_hari
+  jam_ke                  Int                       @db.UnsignedTinyInt
+  jam_mulai               DateTime                  @db.Time(0)
+  jam_selesai             DateTime                  @db.Time(0)
+  created_at              DateTime?                 @db.Timestamp(0)
+  updated_at              DateTime?                 @db.Timestamp(0)
+  izin_meninggalkan_kelas izin_meninggalkan_kelas[]
+  master_gurus            master_gurus              @relation(fields: [master_guru_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "jadwal_pelajarans_master_guru_id_foreign")
+  mata_pelajarans         mata_pelajarans           @relation(fields: [mata_pelajaran_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "jadwal_pelajarans_mata_pelajaran_id_foreign")
+  rombels                 rombels                   @relation(fields: [rombel_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "jadwal_pelajarans_rombel_id_foreign")
+  keterlambatans          keterlambatans[]
+
+  @@unique([rombel_id, hari, jam_ke], map: "jadwal_pelajarans_rombel_id_hari_jam_ke_unique")
+  @@index([master_guru_id], map: "jadwal_pelajarans_master_guru_id_foreign")
+  @@index([mata_pelajaran_id], map: "jadwal_pelajarans_mata_pelajaran_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model jam_pelajarans {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  jam_ke      Int       @unique(map: "jam_pelajarans_jam_ke_unique") @db.UnsignedTinyInt
+  jam_mulai   DateTime  @db.Time(0)
+  jam_selesai DateTime  @db.Time(0)
+  keterangan  String?   @db.VarChar(255)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model job_batches {
+  id             String  @id @db.VarChar(255)
+  name           String  @db.VarChar(255)
+  total_jobs     Int
+  pending_jobs   Int
+  failed_jobs    Int
+  failed_job_ids String  @db.LongText
+  options        String? @db.MediumText
+  cancelled_at   Int?
+  created_at     Int
+  finished_at    Int?
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String @db.VarChar(255)
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
+
+  @@index([queue], map: "jobs_queue_index")
+}
+
+model kelas {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  nama_kelas String    @db.VarChar(255)
+  jurusan    String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  rombels    rombels[]
+}
+
+model keterlambatans {
+  id                                                        BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid                                                      String                @unique(map: "keterlambatans_uuid_unique") @db.Char(36)
+  master_siswa_id                                           BigInt                @db.UnsignedBigInt
+  dicatat_oleh_security_id                                  BigInt                @db.UnsignedBigInt
+  waktu_dicatat_security                                    DateTime              @default(now()) @db.Timestamp(0)
+  alasan_siswa                                              String                @db.Text
+  diverifikasi_oleh_piket_id                                BigInt?               @db.UnsignedBigInt
+  waktu_verifikasi_piket                                    DateTime?             @db.Timestamp(0)
+  tindak_lanjut_piket                                       String?               @db.Text
+  jadwal_pelajaran_id                                       BigInt?               @db.UnsignedBigInt
+  verifikasi_oleh_guru_kelas_id                             BigInt?               @db.UnsignedBigInt
+  waktu_verifikasi_guru_kelas                               DateTime?             @db.Timestamp(0)
+  status                                                    keterlambatans_status @default(dicatat_security)
+  created_at                                                DateTime?             @db.Timestamp(0)
+  updated_at                                                DateTime?             @db.Timestamp(0)
+  users_keterlambatans_dicatat_oleh_security_idTousers      users                 @relation("keterlambatans_dicatat_oleh_security_idTousers", fields: [dicatat_oleh_security_id], references: [id], onUpdate: Restrict, map: "keterlambatans_dicatat_oleh_security_id_foreign")
+  users_keterlambatans_diverifikasi_oleh_piket_idTousers    users?                @relation("keterlambatans_diverifikasi_oleh_piket_idTousers", fields: [diverifikasi_oleh_piket_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "keterlambatans_diverifikasi_oleh_piket_id_foreign")
+  jadwal_pelajarans                                         jadwal_pelajarans?    @relation(fields: [jadwal_pelajaran_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "keterlambatans_jadwal_pelajaran_id_foreign")
+  master_siswa                                              master_siswa          @relation(fields: [master_siswa_id], references: [id], onUpdate: Restrict, map: "keterlambatans_master_siswa_id_foreign")
+  users_keterlambatans_verifikasi_oleh_guru_kelas_idTousers users?                @relation("keterlambatans_verifikasi_oleh_guru_kelas_idTousers", fields: [verifikasi_oleh_guru_kelas_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "keterlambatans_verifikasi_oleh_guru_kelas_id_foreign")
+
+  @@index([dicatat_oleh_security_id], map: "keterlambatans_dicatat_oleh_security_id_foreign")
+  @@index([diverifikasi_oleh_piket_id], map: "keterlambatans_diverifikasi_oleh_piket_id_foreign")
+  @@index([jadwal_pelajaran_id], map: "keterlambatans_jadwal_pelajaran_id_foreign")
+  @@index([master_siswa_id], map: "keterlambatans_master_siswa_id_foreign")
+  @@index([verifikasi_oleh_guru_kelas_id], map: "keterlambatans_verifikasi_oleh_guru_kelas_id_foreign")
+}
+
+model master_gurus {
+  id                   BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  nuptk                String?                    @unique(map: "master_gurus_nuptk_unique") @db.VarChar(255)
+  nama_lengkap         String                     @db.VarChar(255)
+  jenis_kelamin        master_gurus_jenis_kelamin
+  user_id              BigInt?                    @unique(map: "master_gurus_user_id_unique") @db.UnsignedBigInt
+  created_at           DateTime?                  @db.Timestamp(0)
+  updated_at           DateTime?                  @db.Timestamp(0)
+  jadwal_pelajarans    jadwal_pelajarans[]
+  users                users?                     @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "master_gurus_user_id_foreign")
+  prakerin_penempatans prakerin_penempatans[]
+}
+
+model master_siswa {
+  id                   BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  nis                  String                     @unique(map: "master_siswa_nis_unique") @db.VarChar(255)
+  nama_lengkap         String                     @db.VarChar(255)
+  tempat_lahir         String?                    @db.VarChar(255)
+  tanggal_lahir        DateTime?                  @db.Date
+  jenis_kelamin        master_siswa_jenis_kelamin
+  alamat               String?                    @db.Text
+  user_id              BigInt?                    @unique(map: "master_siswa_user_id_unique") @db.UnsignedBigInt
+  created_at           DateTime?                  @db.Timestamp(0)
+  updated_at           DateTime?                  @db.Timestamp(0)
+  dispensasi_siswa     dispensasi_siswa[]
+  keterlambatans       keterlambatans[]
+  users                users?                     @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "master_siswa_user_id_foreign")
+  prakerin_penempatans prakerin_penempatans[]
+  rombel_siswa         rombel_siswa[]
+}
+
+model mata_pelajarans {
+  id                BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  kode_mapel        String              @unique(map: "mata_pelajarans_kode_mapel_unique") @db.VarChar(255)
+  nama_mapel        String              @db.VarChar(255)
+  jumlah_jam        Int                 @default(0)
+  created_at        DateTime?           @db.Timestamp(0)
+  updated_at        DateTime?           @db.Timestamp(0)
+  jadwal_pelajarans jadwal_pelajarans[]
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model model_has_permissions {
+  permission_id BigInt      @db.UnsignedBigInt
+  model_type    String      @db.VarChar(255)
+  model_id      BigInt      @db.UnsignedBigInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "model_has_permissions_permission_id_foreign")
+
+  @@id([permission_id, model_id, model_type])
+  @@index([model_id, model_type], map: "model_has_permissions_model_id_model_type_index")
+}
+
+model model_has_roles {
+  role_id    BigInt @db.UnsignedBigInt
+  model_type String @db.VarChar(255)
+  model_id   BigInt @db.UnsignedBigInt
+  roles      roles  @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "model_has_roles_role_id_foreign")
+  users           users       @relation(fields: [model_id], references: [id])
+  @@id([role_id, model_id, model_type])
+  @@index([model_id, model_type], map: "model_has_roles_model_id_model_type_index")
+  @@index([role_id], map: "model_has_roles_role_id_foreign")
+}
+
+model notifications {
+  id              String    @id @db.Char(36)
+  type            String    @db.VarChar(255)
+  notifiable_type String    @db.VarChar(255)
+  notifiable_id   BigInt    @db.UnsignedBigInt
+  data            String    @db.Text
+  read_at         DateTime? @db.Timestamp(0)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+
+  @@index([notifiable_type, notifiable_id], map: "notifications_notifiable_type_notifiable_id_index")
+}
+
+model password_reset_tokens {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
+
+model perizinan {
+  id                                    BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id                               BigInt               @db.UnsignedBigInt
+  tanggal_izin                          DateTime             @db.Date
+  jenis_izin                            perizinan_jenis_izin
+  keterangan                            String               @db.Text
+  dokumen_pendukung                     String?              @db.VarChar(255)
+  status                                perizinan_status     @default(diajukan)
+  alasan_penolakan                      String?              @db.Text
+  disetujui_oleh                        BigInt?              @db.UnsignedBigInt
+  created_at                            DateTime?            @db.Timestamp(0)
+  updated_at                            DateTime?            @db.Timestamp(0)
+  users_perizinan_disetujui_olehTousers users?               @relation("perizinan_disetujui_olehTousers", fields: [disetujui_oleh], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "perizinan_disetujui_oleh_foreign")
+  users_perizinan_user_idTousers        users                @relation("perizinan_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "perizinan_user_id_foreign")
+
+  @@index([disetujui_oleh], map: "perizinan_disetujui_oleh_foreign")
+  @@index([user_id], map: "perizinan_user_id_foreign")
+}
+
+model permissions {
+  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String                  @db.VarChar(255)
+  guard_name            String                  @db.VarChar(255)
+  created_at            DateTime?               @db.Timestamp(0)
+  updated_at            DateTime?               @db.Timestamp(0)
+  model_has_permissions model_has_permissions[]
+  role_has_permissions  role_has_permissions[]
+
+  @@unique([name, guard_name], map: "permissions_name_guard_name_unique")
+}
+
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt    @db.UnsignedBigInt
+  name           String    @db.Text
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([expires_at], map: "personal_access_tokens_expires_at_index")
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model prakerin_industris {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  nama_industri        String                 @db.VarChar(255)
+  alamat               String                 @db.Text
+  kota                 String                 @db.VarChar(255)
+  telepon              String?                @db.VarChar(255)
+  email_pic            String?                @db.VarChar(255)
+  nama_pic             String?                @db.VarChar(255)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  prakerin_penempatans prakerin_penempatans[]
+}
+
+model prakerin_jurnals {
+  id                      BigInt                             @id @default(autoincrement()) @db.UnsignedBigInt
+  prakerin_penempatan_id  BigInt                             @db.UnsignedBigInt
+  tanggal                 DateTime                           @db.Date
+  kegiatan_dilakukan      String                             @db.Text
+  kompetensi_yang_didapat String                             @db.Text
+  foto_kegiatan           String?                            @db.VarChar(255)
+  status_verifikasi       prakerin_jurnals_status_verifikasi @default(menunggu)
+  catatan_pembimbing      String?                            @db.Text
+  created_at              DateTime?                          @db.Timestamp(0)
+  updated_at              DateTime?                          @db.Timestamp(0)
+  prakerin_penempatans    prakerin_penempatans               @relation(fields: [prakerin_penempatan_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "prakerin_jurnals_prakerin_penempatan_id_foreign")
+
+  @@index([prakerin_penempatan_id], map: "prakerin_jurnals_prakerin_penempatan_id_foreign")
+}
+
+model prakerin_penempatans {
+  id                       BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  master_siswa_id          BigInt                      @db.UnsignedBigInt
+  prakerin_industri_id     BigInt                      @db.UnsignedBigInt
+  master_guru_id           BigInt                      @db.UnsignedBigInt
+  nama_pembimbing_industri String                      @db.VarChar(255)
+  tanggal_mulai            DateTime                    @db.Date
+  tanggal_selesai          DateTime                    @db.Date
+  status                   prakerin_penempatans_status @default(aktif)
+  created_at               DateTime?                   @db.Timestamp(0)
+  updated_at               DateTime?                   @db.Timestamp(0)
+  prakerin_jurnals         prakerin_jurnals[]
+  master_gurus             master_gurus                @relation(fields: [master_guru_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "prakerin_penempatans_master_guru_id_foreign")
+  master_siswa             master_siswa                @relation(fields: [master_siswa_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "prakerin_penempatans_master_siswa_id_foreign")
+  prakerin_industris       prakerin_industris          @relation(fields: [prakerin_industri_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "prakerin_penempatans_prakerin_industri_id_foreign")
+
+  @@unique([master_siswa_id, tanggal_mulai], map: "prakerin_penempatans_master_siswa_id_tanggal_mulai_unique")
+  @@index([master_guru_id], map: "prakerin_penempatans_master_guru_id_foreign")
+  @@index([prakerin_industri_id], map: "prakerin_penempatans_prakerin_industri_id_foreign")
+}
+
+model role_has_permissions {
+  permission_id BigInt      @db.UnsignedBigInt
+  role_id       BigInt      @db.UnsignedBigInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "role_has_permissions_permission_id_foreign")
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "role_has_permissions_role_id_foreign")
+
+  @@id([permission_id, role_id])
+  @@index([role_id], map: "role_has_permissions_role_id_foreign")
+}
+
+model roles {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  name                 String                 @db.VarChar(255)
+  guard_name           String                 @db.VarChar(255)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  model_has_roles      model_has_roles[]
+  role_has_permissions role_has_permissions[]
+
+  @@unique([name, guard_name], map: "roles_name_guard_name_unique")
+}
+
+model rombel_siswa {
+  id              BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  rombel_id       BigInt       @db.UnsignedBigInt
+  master_siswa_id BigInt       @db.UnsignedBigInt
+  master_siswa    master_siswa @relation(fields: [master_siswa_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "rombel_siswa_master_siswa_id_foreign")
+  rombels         rombels      @relation(fields: [rombel_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "rombel_siswa_rombel_id_foreign")
+
+  @@unique([rombel_id, master_siswa_id], map: "rombel_siswa_rombel_id_master_siswa_id_unique")
+  @@index([master_siswa_id], map: "rombel_siswa_master_siswa_id_foreign")
+}
+
+model rombels {
+  id                      BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  tahun_ajaran            String                    @db.VarChar(255)
+  kelas_id                BigInt                    @db.UnsignedBigInt
+  wali_kelas_id           BigInt                    @db.UnsignedBigInt
+  created_at              DateTime?                 @db.Timestamp(0)
+  updated_at              DateTime?                 @db.Timestamp(0)
+  izin_meninggalkan_kelas izin_meninggalkan_kelas[]
+  jadwal_pelajarans       jadwal_pelajarans[]
+  rombel_siswa            rombel_siswa[]
+  kelas                   kelas                     @relation(fields: [kelas_id], references: [id], onUpdate: Restrict, map: "rombels_kelas_id_foreign")
+  users                   users                     @relation(fields: [wali_kelas_id], references: [id], onUpdate: Restrict, map: "rombels_wali_kelas_id_foreign")
+
+  @@index([kelas_id], map: "rombels_kelas_id_foreign")
+  @@index([wali_kelas_id], map: "rombels_wali_kelas_id_foreign")
+}
+
+model sessions {
+  id            String  @id @db.VarChar(255)
+  user_id       BigInt? @db.UnsignedBigInt
+  ip_address    String? @db.VarChar(45)
+  user_agent    String? @db.Text
+  payload       String  @db.LongText
+  last_activity Int
+
+  @@index([last_activity], map: "sessions_last_activity_index")
+  @@index([user_id], map: "sessions_user_id_index")
+}
+
+model users {
+  id                                                                              BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  name                                                                            String                    @db.VarChar(255)
+  email                                                                           String                    @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at                                                               DateTime?                 @db.Timestamp(0)
+  password                                                                        String                    @db.VarChar(255)
+  remember_token                                                                  String?                   @db.VarChar(100)
+  created_at                                                                      DateTime?                 @db.Timestamp(0)
+  updated_at                                                                      DateTime?                 @db.Timestamp(0)
+  dispensasis_dispensasis_diajukan_oleh_idTousers                                 dispensasis[]             @relation("dispensasis_diajukan_oleh_idTousers")
+  dispensasis_dispensasis_disetujui_oleh_idTousers                                dispensasis[]             @relation("dispensasis_disetujui_oleh_idTousers")
+  izin_meninggalkan_kelas_izin_meninggalkan_kelas_ditolak_olehTousers             izin_meninggalkan_kelas[] @relation("izin_meninggalkan_kelas_ditolak_olehTousers")
+  izin_meninggalkan_kelas_izin_meninggalkan_kelas_guru_kelas_approval_idTousers   izin_meninggalkan_kelas[] @relation("izin_meninggalkan_kelas_guru_kelas_approval_idTousers")
+  izin_meninggalkan_kelas_izin_meninggalkan_kelas_guru_piket_approval_idTousers   izin_meninggalkan_kelas[] @relation("izin_meninggalkan_kelas_guru_piket_approval_idTousers")
+  izin_meninggalkan_kelas_izin_meninggalkan_kelas_security_verification_idTousers izin_meninggalkan_kelas[] @relation("izin_meninggalkan_kelas_security_verification_idTousers")
+  izin_meninggalkan_kelas_izin_meninggalkan_kelas_user_idTousers                  izin_meninggalkan_kelas[] @relation("izin_meninggalkan_kelas_user_idTousers")
+  keterlambatans_keterlambatans_dicatat_oleh_security_idTousers                   keterlambatans[]          @relation("keterlambatans_dicatat_oleh_security_idTousers")
+  keterlambatans_keterlambatans_diverifikasi_oleh_piket_idTousers                 keterlambatans[]          @relation("keterlambatans_diverifikasi_oleh_piket_idTousers")
+  keterlambatans_keterlambatans_verifikasi_oleh_guru_kelas_idTousers              keterlambatans[]          @relation("keterlambatans_verifikasi_oleh_guru_kelas_idTousers")
+  master_gurus                                                                    master_gurus?
+  master_siswa                                                                    master_siswa?
+  perizinan_perizinan_disetujui_olehTousers                                       perizinan[]               @relation("perizinan_disetujui_olehTousers")
+  perizinan_perizinan_user_idTousers                                              perizinan[]               @relation("perizinan_user_idTousers")
+  rombels                                                                         rombels[]
+  model_has_roles model_has_roles[]
+}
+
+enum master_gurus_jenis_kelamin {
+  L
+  P
+}
+
+enum perizinan_jenis_izin {
+  sakit
+  izin
+  dispen
+}
+
+enum jadwal_pelajarans_hari {
+  Senin
+  Selasa
+  Rabu
+  Kamis
+  Jumat
+  Sabtu
+}
+
+enum dispensasis_status {
+  diajukan
+  disetujui
+  ditolak
+}
+
+enum master_siswa_jenis_kelamin {
+  L
+  P
+}
+
+enum perizinan_status {
+  diajukan
+  disetujui
+  ditolak
+}
+
+enum prakerin_jurnals_status_verifikasi {
+  menunggu
+  disetujui
+  revisi
+}
+
+enum prakerin_penempatans_status {
+  aktif
+  selesai
+  dibatalkan
+}
+
+enum izin_meninggalkan_kelas_status {
+  diajukan
+  disetujui_guru_kelas
+  disetujui_guru_piket
+  diverifikasi_security
+  selesai
+  ditolak
+  terlambat
+}
+
+enum keterlambatans_status {
+  dicatat_security
+  diverifikasi_piket
+  selesai
+  terlambat
+}

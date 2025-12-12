@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es2016",
+
+    /* Modules */
+    "module": "commonjs" /* Kita pakai CommonJS (standar Node.js) */,
+    "moduleResolution": "node" /* Cara Node mencari file */,
+    "rootDir": "./src" /* Folder kodingan kita */,
+    "outDir": "./dist" /* Folder hasil compile (nanti) */,
+
+    /* Interop Constraints */
+    "esModuleInterop": true /* Agar bisa import express from 'express' tanpa error */,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Type Checking */
+    "strict": true,
+    "skipLibCheck": true,
+
+    /* KUNCI PERBAIKAN ERROR KAMU ADA DISINI: */
+    "verbatimModuleSyntax": false /* Matikan validasi syntax ketat ini */
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

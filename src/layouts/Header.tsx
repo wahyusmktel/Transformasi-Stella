@@ -90,10 +90,23 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { setTheme, theme } = useTheme();
 
+  // --- UBAH BAGIAN INI ---
   const handleLogout = () => {
+    // Hapus SEMUA data sesi
     localStorage.removeItem("token");
+    localStorage.removeItem("user_data");
+    localStorage.removeItem("user_roles");
     navigate("/login");
   };
+
+  // --- TAMBAHAN BARU: AMBIL DATA USER REAL ---
+  // Kita baca data user yang disimpan saat login tadi
+  const userDataStr = localStorage.getItem("user_data");
+  const userData = userDataStr ? JSON.parse(userDataStr) : null;
+  
+  // Fallback default jika data belum ada
+  const userName = userData?.name || "User";
+  const userEmail = userData?.email || "user@example.com";
 
   return (
     <header className="sticky top-0 z-50 flex h-[60px] items-center gap-4 border-b bg-white/80 px-4 backdrop-blur-md lg:px-6">
@@ -320,10 +333,10 @@ export default function Header() {
           <DropdownMenuLabel className="p-4">
             <div className="flex flex-col space-y-1">
               <p className="text-base font-bold text-slate-900 leading-none">
-                Wahyu Ganteng
+                {userName}
               </p>
               <p className="text-sm font-normal text-slate-500 leading-none">
-                admin@master.com
+                {userEmail}
               </p>
             </div>
           </DropdownMenuLabel>

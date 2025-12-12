@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../lib/axios"; // Import konfigurasi Axios kita
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Command, ArrowRight, Loader2, Lock } from "lucide-react";
+import { Mail, Command, ArrowRight, Loader2, Lock, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Dialog,
@@ -16,35 +17,65 @@ import {
 } from "@/components/ui/dialog";
 
 export default function Login() {
+  const [email, setEmail] = useState(""); // State untuk Email
+  const [password, setPassword] = useState(""); // State untuk Password
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [isResetOpen, setIsResetOpen] = useState(false); // State untuk modal
+  const [error, setError] = useState<string | null>(null); // State untuk Error Message
+  const [isResetOpen, setIsResetOpen] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
-    // Simulasi request ke API
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // 1. Langsung POST ke Endpoint Node.js
+      // Tidak perlu csrf-cookie lagi!
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
 
-      // 3. LOGIC BARU DISINI:
-      // Simpan token ke localStorage (Ceritanya ini token dari server)
-      localStorage.setItem("token", "ini-token-rahasia-12345");
+      console.log("Login Sukses:", response.data);
 
-      // Pindahkan user ke halaman dashboard
+      // 2. SIMPAN HARTA KARUN (TOKEN & USER)
+      // Ini bagian paling penting di JWT
+      localStorage.setItem("token", response.data.token); 
+      localStorage.setItem("user_data", JSON.stringify(response.data.user));
+      
+      // Simpan role jika ada (opsional, tergantung respon backendmu)
+      if (response.data.user.roles) {
+         localStorage.setItem("user_roles", JSON.stringify(response.data.user.roles));
+      }
+
+      // 3. Pindah ke Dashboard
       navigate("/dashboard");
-    }, 2000);
+
+    } catch (err: any) {
+      console.error("Login Gagal:", err);
+      
+      if (err.response) {
+        // Menangkap pesan error dari authController.ts (Node.js)
+        // misal: "Password salah" atau "Email tidak ditemukan"
+        setError(err.response.data.message || "Login gagal.");
+      } else {
+        setError("Tidak dapat menghubungi server backend (Pastikan port 5000 jalan).");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleResetPassword = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulasi kirim email reset
+    // Simulasi kirim email reset (Nanti bisa diganti API real juga)
     setTimeout(() => {
       setIsLoading(false);
-      setIsResetOpen(false); // Tutup modal
+      setIsResetOpen(false);
       alert("Link reset password telah dikirim ke email Anda!");
     }, 2000);
   };
@@ -57,9 +88,7 @@ export default function Login() {
         <div className="absolute inset-0 bg-red-900" />{" "}
         {/* Base color merah tua, bukan hitam */}
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1761839256601-e768233e25e7?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center bg-no-repeat opacity-40 mix-blend-overlay" />
-        {/* Gradient Overlay yang lebih 'Vibrant' (Merah ke Ungu/Rose) */}
-        {/* --- INI YANG BARU (PAKAI CLASS ANIMASI KITA) --- */}
-        {/* Kita pakai mix-blend-multiply biar warnanya menyatu dengan gambar di belakangnya */}
+        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-animated-gradient opacity-90 mix-blend-multiply" />
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -104,6 +133,18 @@ export default function Login() {
             </p>
           </div>
 
+          {/* ERROR ALERT */}
+          {error && (
+            <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md flex items-center gap-2"
+            >
+                <AlertCircle className="w-4 h-4" />
+                {error}
+            </motion.div>
+          )}
+
           <div className="grid gap-6">
             <form onSubmit={handleLogin}>
               <div className="grid gap-4">
@@ -116,8 +157,11 @@ export default function Login() {
                       id="email"
                       placeholder="admin@master.com"
                       type="email"
+                      value={email} // BINDING STATE
+                      onChange={(e) => setEmail(e.target.value)} // BINDING STATE
                       className="pl-10 h-11 border-slate-200 bg-slate-50/50 shadow-sm transition-all duration-300 focus-visible:ring-0 focus-visible:border-red-500 focus-visible:bg-white focus-visible:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
                       disabled={isLoading}
+                      required
                     />
                   </div>
                 </div>
@@ -182,14 +226,18 @@ export default function Login() {
                       id="password"
                       placeholder="******"
                       type="password"
+                      value={password} // BINDING STATE
+                      onChange={(e) => setPassword(e.target.value)} // BINDING STATE
                       className="pl-10 h-11 border-slate-200 bg-slate-50/50 shadow-sm transition-all duration-300 focus-visible:ring-0 focus-visible:border-red-500 focus-visible:bg-white focus-visible:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]"
                       disabled={isLoading}
+                      required
                     />
                   </div>
                 </div>
 
-                {/* Tombol Login Gradient 'LIVELY' (Merah ke Orange/Rose) */}
+                {/* Tombol Login Gradient */}
                 <Button
+                  type="submit"
                   className="h-11 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold shadow-lg shadow-red-500/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
                   disabled={isLoading}
                 >

@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 export default function PublicRoute() {
-  const isAuthenticated = localStorage.getItem("token");
+  const isAuthenticated = localStorage.getItem("user_data");
 
   // LOGIKA:
   // Kalau user SUDAH login (ada token), jangan kasih masuk sini,

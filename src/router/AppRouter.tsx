@@ -7,6 +7,7 @@ import PublicRoute from "./PublicRoute"; // <--- Import ini
 import Profile from "@/pages/Profile";
 import SampleTable from "@/pages/SampleTable";
 import Chat from "@/pages/Chat";
+import UsersPage from "@/pages/UsersPage";
 
 export default function AppRouter() {
   return (
@@ -27,6 +28,7 @@ export default function AppRouter() {
             <Route path="/dashboard/profile" element={<Profile />} />
             <Route path="/dashboard/table" element={<SampleTable />} />
             <Route path="/dashboard/chat" element={<Chat />} />
+            <Route path="/dashboard/users" element={<UsersPage />} />
 
             {/* Nanti kalau nambah halaman lain, taruh sini. Contoh: */}
             {/* <Route path="/dashboard/users" element={<UsersPage />} /> */}

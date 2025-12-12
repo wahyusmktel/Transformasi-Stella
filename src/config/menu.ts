@@ -2,41 +2,46 @@ import {
   LayoutDashboard,
   Users,
   Settings,
-  FolderKanban,
   Shield,
   UserPlus,
   List,
   Table as TableIcon,
   MessageSquare,
+  GraduationCap, // Icon baru untuk Akademik
+  School,        // Icon baru untuk Sekolah/Kelas
+  BookOpen       // Icon baru untuk Mapel
 } from "lucide-react";
 
-// Definisikan tipe data menu biar aman
 export type NavItem = {
   title: string;
   href: string;
   icon: any;
-  children?: NavItem[]; // Optional: Bisa punya anak menu
+  children?: NavItem[];
 };
 
 export const navItems: NavItem[] = [
+  // --- 1. UTAMA ---
   {
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
-  // CONTOH MENU DENGAN SUBMENU
+
+  // --- 2. MANAJEMEN PENGGUNA (YANG KITA KERJAKAN SEKARANG) ---
   {
     title: "User Management",
-    href: "#", // Parent gak punya link langsung biasanya
+    href: "#", 
     icon: Users,
     children: [
       {
-        title: "List Users",
+        title: "Semua Pengguna", // Ini yang SUDAH JADI (Real API)
         href: "/dashboard/users",
         icon: List,
       },
+      // Fitur Masa Depan (Saya comment dulu biar user gak bingung)
+      /*
       {
-        title: "Create User",
+        title: "Tambah User",
         href: "/dashboard/users/create",
         icon: UserPlus,
       },
@@ -45,23 +50,56 @@ export const navItems: NavItem[] = [
         href: "/dashboard/users/roles",
         icon: Shield,
       },
+      */
     ],
   },
+
+  // --- 3. DATA AKADEMIK (SESUAI DATABASE KAMU) ---
+  // Ini persiapan untuk next step (Siswa, Guru, Kelas)
   {
-    title: "Data Master",
-    href: "/dashboard/table",
-    icon: TableIcon, // Pakai icon Table
+    title: "Data Akademik",
+    href: "#",
+    icon: GraduationCap,
+    children: [
+      {
+        title: "Data Siswa",
+        href: "/dashboard/siswa",
+        icon: Users,
+      },
+      {
+        title: "Data Guru",
+        href: "/dashboard/guru",
+        icon: UserPlus,
+      },
+      {
+        title: "Data Kelas & Rombel",
+        href: "/dashboard/kelas",
+        icon: School,
+      },
+      {
+        title: "Mata Pelajaran",
+        href: "/dashboard/mapel",
+        icon: BookOpen,
+      },
+    ],
   },
+
+  // --- 4. KOMUNIKASI ---
   {
-    title: "Chat / Pesan",
+    title: "Pesan & Chat",
     href: "/dashboard/chat",
     icon: MessageSquare,
   },
+
+  // --- 5. DEVELOPMENT TOOLS (JANGAN DIHAPUS DULU) ---
+  // Simpan ini buat nyontek kodingan tabel/komponen
   {
-    title: "Projects",
-    href: "/dashboard/projects",
-    icon: FolderKanban,
+    title: "UI Template",
+    href: "/dashboard/table",
+    icon: TableIcon, 
   },
+  
+  // --- 6. SYSTEM ---
   {
     title: "Settings",
     href: "/dashboard/settings",
